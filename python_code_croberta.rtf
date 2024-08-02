@@ -1,0 +1,96 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red245\green245\blue245;\red0\green0\blue0;\red157\green0\blue210;
+\red15\green112\blue1;\red144\green1\blue18;\red0\green0\blue255;\red101\green76\blue29;\red19\green85\blue52;
+}
+{\*\expandedcolortbl;;\cssrgb\c96863\c96863\c96863;\cssrgb\c0\c0\c0;\cssrgb\c68627\c0\c85882;
+\cssrgb\c0\c50196\c0;\cssrgb\c63922\c8235\c8235;\cssrgb\c0\c0\c100000;\cssrgb\c47451\c36863\c14902;\cssrgb\c6667\c40000\c26667;
+}
+\margl1440\margr1440\vieww19840\viewh16160\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs28 \cf0 \cb2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 pip install transformers pandas torch\cb1 \
+\cf4 \cb2 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \
+import\cf0 \strokec3  pandas \cf4 \strokec4 as\cf0 \strokec3  pd\cb1 \
+\cf4 \cb2 \strokec4 import\cf0 \strokec3  torch\cb1 \
+\cf4 \cb2 \strokec4 from\cf0 \strokec3  transformers \cf4 \strokec4 import\cf0 \strokec3  AutoTokenizer, AutoModelForSequenceClassification\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb2 \strokec5 # Mount Google Drive\cf0 \cb1 \strokec3 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2 drive.mount(\cf6 \strokec6 '/content/drive'\cf0 \strokec3 )\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb2 \strokec5 # Define model names\cf0 \cb1 \strokec3 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2 model_names = [\cb1 \
+\cb2     \cf6 \strokec6 "garrettbaber/twitter-roberta-base-joy-intensity"\cf0 \strokec3 ,\cb1 \
+\cb2     \cf6 \strokec6 "garrettbaber/twitter-roberta-base-fear-intensity"\cf0 \strokec3 ,\cb1 \
+\cb2     \cf6 \strokec6 "garrettbaber/twitter-roberta-base-anger-intensity"\cf0 \strokec3 ,\cb1 \
+\cb2     \cf6 \strokec6 "garrettbaber/twitter-roberta-base-sadness-intensity"\cf0 \cb1 \strokec3 \
+\cb2 ]\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb2 \strokec5 # Load tokenizers and models\cf0 \cb1 \strokec3 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2 tokenizers = [AutoTokenizer.from_pretrained(name) \cf4 \strokec4 for\cf0 \strokec3  name \cf7 \strokec7 in\cf0 \strokec3  model_names]\cb1 \
+\cb2 models = [AutoModelForSequenceClassification.from_pretrained(name) \cf4 \strokec4 for\cf0 \strokec3  name \cf7 \strokec7 in\cf0 \strokec3  model_names]\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb2 \strokec5 # Setup device\cf0 \cb1 \strokec3 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2 device = torch.device(\cf6 \strokec6 "cuda"\cf0 \strokec3  \cf4 \strokec4 if\cf0 \strokec3  torch.cuda.is_available() \cf4 \strokec4 else\cf0 \strokec3  \cf6 \strokec6 "cpu"\cf0 \strokec3 )\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb2 \strokec4 for\cf0 \strokec3  model \cf7 \strokec7 in\cf0 \strokec3  models:\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2     model.to(device)\cb1 \
+\cb2     model.\cf8 \strokec8 eval\cf0 \strokec3 ()\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb2 \strokec5 # Load the dataset from the URL in chunks\cf0 \cb1 \strokec3 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2 url = \cf6 \strokec6 \'93insert_read_path.csv"\cf0 \cb1 \strokec3 \
+\cb2 chunk_size = \cf9 \strokec9 100000\cf0 \strokec3   \cf5 \strokec5 # Adjust the chunk size as needed\cf0 \cb1 \strokec3 \
+\cb2 data_reader = pd.read_csv(url, chunksize=chunk_size)\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb2 \strokec5 # Create an empty list to store results\cf0 \cb1 \strokec3 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2 results = []\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb2 \strokec4 with\cf0 \strokec3  torch.no_grad():  \cf5 \strokec5 # Disable gradient calculation\cf0 \cb1 \strokec3 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2     \cf4 \strokec4 for\cf0 \strokec3  chunk \cf7 \strokec7 in\cf0 \strokec3  data_reader:\cb1 \
+\cb2         texts = chunk[\cf6 \strokec6 "text"\cf0 \strokec3 ].tolist()\cb1 \
+\
+\cb2         \cf5 \strokec5 # Initialize a dictionary to store results for this chunk\cf0 \cb1 \strokec3 \
+\cb2         chunk_results = \{\cf6 \strokec6 "text"\cf0 \strokec3 : texts\}\cb1 \
+\
+\cb2         \cf4 \strokec4 for\cf0 \strokec3  tokenizer, model, emotion \cf7 \strokec7 in\cf0 \strokec3  \cf8 \strokec8 zip\cf0 \strokec3 (tokenizers, models, [\cf6 \strokec6 "Joy"\cf0 \strokec3 , \cf6 \strokec6 "Fear"\cf0 \strokec3 , \cf6 \strokec6 "Anger"\cf0 \strokec3 , \cf6 \strokec6 "Sadness"\cf0 \strokec3 ]):\cb1 \
+\cb2             encoded_inputs = tokenizer(texts, padding=\cf7 \strokec7 True\cf0 \strokec3 , truncation=\cf7 \strokec7 True\cf0 \strokec3 , return_tensors=\cf6 \strokec6 "pt"\cf0 \strokec3 )\cb1 \
+\cb2             encoded_inputs = \{key: val.to(device) \cf4 \strokec4 for\cf0 \strokec3  key, val \cf7 \strokec7 in\cf0 \strokec3  encoded_inputs.items()\}\cb1 \
+\cb2             outputs = model(**encoded_inputs)\cb1 \
+\cb2             intensity_values = outputs.logits.squeeze().tolist()\cb1 \
+\
+\cb2             \cf5 \strokec5 # Store the results in the chunk results dictionary\cf0 \cb1 \strokec3 \
+\cb2             chunk_results[emotion] = intensity_values\cb1 \
+\
+\cb2         \cf5 \strokec5 # Append the chunk results to the main results list\cf0 \cb1 \strokec3 \
+\cb2         results.append(pd.DataFrame(chunk_results))\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb2 \strokec5 # Concatenate all chunks into a single DataFrame\cf0 \cb1 \strokec3 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2 final_results = pd.concat(results, ignore_index=\cf7 \strokec7 True\cf0 \strokec3 )\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb2 \strokec5 # Save the new dataframe to Google Drive\cf0 \cb1 \strokec3 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb2 output_file_path = \cf6 \strokec6 \'91insert_save_path.csv\'92\cf0 \cb1 \strokec3 \
+\cb2 final_results.to_csv(output_file_path, index=\cf7 \strokec7 False\cf0 \strokec3 )\cb1 \
+}
